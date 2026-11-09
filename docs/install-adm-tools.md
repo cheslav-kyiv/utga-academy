@@ -87,4 +87,7 @@ cd /home/uaguides/utga-academy && php8.3 -d max_input_vars=5000 provisioning/pro
 | 9.11.2026 | MySQL акаунта 5.7 → 8.4 (акаунт переведено на сервер hosting-109) |
 | 9.11.2026 | Moodle 4.5.15+ встановлено (`--lang=uk`), `provision.php` зібрав UTGA-G01 і UTGA-H01 |
 | 9.11.2026 | Cron через панель працює; SSL Let's Encrypt для academy.psgua.com, дійсний до 7.02.2027 |
-| — | TODO: `max_input_vars` 5000 для сайту, SMTP, самостійна реєстрація, ручне проходження курсу |
+| 9.11.2026 | PHP сайту: libsodium, `max_input_vars` 5000, `max_execution_time` 300 — «Середовище» без помилок (OPcache — платна опція, вимкнено) |
+| 9.11.2026 | Сайт зареєстровано в Moodle HQ (сповіщення безпеки → info@uaguides.com) |
+| 9.11.2026 | SMTP: `mail.adm.tools:465`, SSL, LOGIN, скринька `learning@uaguides.com` (= noreplyaddress). Тестовий лист на ukr.net — у «Вхідні» |
+| — | TODO: самостійна реєстрація (auth_email), ручне проходження курсу, OPcache перед запуском |
