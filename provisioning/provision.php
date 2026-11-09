@@ -187,7 +187,10 @@ function utga_about_html(array $spec): string {
     $html .= '<h3>Як проходити курс</h3><ol>'
         . '<li>Модулі відкриваються послідовно: наступний стає доступним після опрацювання попереднього.</li>'
         . '<li>У кожному модулі перегляньте відеолекцію (або прочитайте її текстову версію) та посібник.</li>'
-        . '<li>Пройдіть підсумковий тест (≥ ' . (int)$spec['final']['quiz']['pass_percent'] . '%) і заповніть анкету.</li>'
+        . '<li>Пройдіть підсумковий тест (≥ ' . (int)$spec['final']['quiz']['pass_percent'] . '%)'
+        . (empty($spec['final']['assignment']) ? '' : ', виконайте практичне завдання (оцінює експерт, ≥ '
+            . (int)$spec['final']['assignment']['pass_grade'] . ' зі 100)')
+        . ' і заповніть анкету.</li>'
         . '<li>Отримайте PDF-сертифікат і цифровий бейдж. Обидва можна перевірити онлайн.</li></ol>';
     if (!empty($spec['references'])) {
         $html .= '<h3>Стандарти та джерела</h3><ul>'
@@ -225,6 +228,8 @@ function utga_build_course(testing_data_generator $gen, array $spec, string $dir
         'numsections' => $nummodules + 1,
         'enablecompletion' => 1,
         'showcompletionconditions' => 1,
+        // "visible": false — курс-оболонка, прихований від слухачів, доки зміст не затверджено.
+        'visible' => (int)($spec['visible'] ?? 1),
         // Примусова мова курсу лише якщо мовний пакет встановлено (інакше JS-компоненти Moodle видають помилки).
         'lang' => get_string_manager()->translation_exists($site['site']['lang'], false) ? $site['site']['lang'] : '',
     ], ['createsections' => true]);
@@ -265,7 +270,10 @@ function utga_build_course(testing_data_generator $gen, array $spec, string $dir
     $section = $DB->get_record('course_sections', ['course' => $course->id, 'section' => $finalnum], '*', MUST_EXIST);
     course_update_section($course, $section, [
         'name' => 'Фінальний етап курсу',
-        'summary' => '<p>Пройдіть підсумковий тест і заповніть анкету — після цього стане доступним сертифікат.</p>',
+        'summary' => empty($spec['final']['assignment'])
+            ? '<p>Пройдіть підсумковий тест і заповніть анкету — після цього стане доступним сертифікат.</p>'
+            : '<p>Пройдіть підсумковий тест, виконайте практичне завдання (його оцінює експерт) і заповніть анкету — '
+                . 'після цього стане доступним сертифікат.</p>',
         'summaryformat' => FORMAT_HTML,
         'availability' => utga_availability_completed([$previouslast]),
     ]);
@@ -285,11 +293,33 @@ function utga_build_course(testing_data_generator $gen, array $spec, string $dir
     mtrace("  тест: {$n} запитань, прохідний бал {$f['quiz']['pass_percent']}%.");
     $completioncms[] = $quiz->cmid;
 
+    // Необов'язкове практичне завдання, яке оцінює експерт (для програм, що підтверджують кваліфікацію).
+    $gate = [$quiz->cmid];
+    if (!empty($f['assignment'])) {
+        $a = $f['assignment'];
+        $assign = $gen->create_module('assign', [
+            'course' => $course->id, 'section' => $finalnum,
+            'name' => $a['name'], 'intro' => $a['intro_html'], 'introformat' => FORMAT_HTML,
+            'grade' => 100, 'gradepass' => $a['pass_grade'],
+            'assignsubmission_onlinetext_enabled' => 1,
+            'assignsubmission_file_enabled' => 1, 'assignsubmission_file_maxfiles' => 5,
+            'assignsubmission_file_maxsizebytes' => 20 * 1024 * 1024,
+            'assignfeedback_comments_enabled' => 1,
+            'submissiondrafts' => 1, 'sendnotifications' => 1,
+            // Якщо експерт не зарахував — слухач може доопрацювати й подати знову.
+            'attemptreopenmethod' => 'untilpass', 'maxattempts' => -1,
+            'availability' => utga_availability_completed([$quiz->cmid]),
+        ], ['completion' => COMPLETION_TRACKING_AUTOMATIC, 'completiongradeitemnumber' => 0, 'completionpassgrade' => 1]);
+        $completioncms[] = $assign->cmid;
+        $gate[] = $assign->cmid;
+        mtrace("  практичне завдання: оцінює експерт, прохідний бал {$a['pass_grade']}/100.");
+    }
+
     $feedback = $gen->create_module('feedback', [
         'course' => $course->id, 'section' => $finalnum,
         'name' => $f['feedback']['name'], 'intro' => $f['feedback']['intro_html'], 'introformat' => FORMAT_HTML,
         'anonymous' => 1, 'multiple_submit' => 0, 'completionsubmit' => 1,
-        'availability' => utga_availability_completed([$quiz->cmid]),
+        'availability' => utga_availability_completed($gate),
     ], ['completion' => COMPLETION_TRACKING_AUTOMATIC]);
     utga_feedback_items($gen, $feedback);
     $completioncms[] = $feedback->cmid;
@@ -299,7 +329,7 @@ function utga_build_course(testing_data_generator $gen, array $spec, string $dir
         'name' => $f['certificate']['name'],
         'intro' => '<p>Сертифікат можна перевірити онлайн за унікальним кодом або QR-кодом.</p>', 'introformat' => FORMAT_HTML,
         'verifyany' => 1, 'deliveryoption' => 'D',
-        'availability' => utga_availability_completed([$quiz->cmid, $feedback->cmid]),
+        'availability' => utga_availability_completed(array_merge($gate, [$feedback->cmid])),
     ], ['completion' => COMPLETION_TRACKING_AUTOMATIC, 'completionview' => 1]);
     utga_certificate_template($cert, $spec, $site);
 
@@ -319,7 +349,7 @@ function utga_build_course(testing_data_generator $gen, array $spec, string $dir
         enrol_get_plugin('self')->add_default_instance($course);
     }
 
-    utga_badge($course, $spec, $site);
+    utga_badge($course, $spec, $site, $dir);
     rebuild_course_cache($course->id, true);
     mtrace("Курс {$short}: зібрано ({$nummodules} модулів, сертифікат, бейдж).");
 }
@@ -406,7 +436,8 @@ function utga_certificate_template(stdClass $cert, array $spec, array $site): vo
     $add('studentname', "Ім'я слухача", '', 88, 26, 148, 250, 1, '#111827');
     $add('text', 'Завершив', 'успішно завершив(-ла) навчальний курс', 106, 12, 148, 250);
     $add('coursename', 'Назва курсу', json_encode(['coursenamedisplay' => 'fullname']), 116, 18, 148, 250, 1, '#1E3A8A');
-    $add('text', 'Обсяг', 'Обсяг: ' . (int)$spec['hours'] . ' академічних годин', 138, 12, 148, 250);
+    $ects = empty($spec['ects']) ? '' : ' (' . $spec['ects'] . ' кредити ЄКТС)';
+    $add('text', 'Обсяг', 'Обсяг: ' . (int)$spec['hours'] . ' академічних годин' . $ects, 138, 12, 148, 250);
     $add('text', 'Підпис дати', 'Дата видачі', 166, 8, 60, 80, 1, '#4B5563');
     $add('date', 'Дата', json_encode(['dateitem' => '-1', 'dateformat' => 'strftimedate']), 172, 11, 60, 80);
     $add('text', 'Підпис коду', 'Код перевірки', 166, 8, 237, 80, 1, '#4B5563');
@@ -417,7 +448,7 @@ function utga_certificate_template(stdClass $cert, array $spec, array $site): vo
 }
 
 /** Курсовий бейдж Open Badges 2.0, що видається автоматично після завершення курсу; ESCO — як alignment. */
-function utga_badge(stdClass $course, array $spec, array $site): void {
+function utga_badge(stdClass $course, array $spec, array $site, string $dir): void {
     global $DB, $USER, $CFG;
     $b = $spec['final']['badge'];
     $now = time();
@@ -448,7 +479,13 @@ function utga_badge(stdClass $course, array $spec, array $site): void {
         }
     }
 
-    $png = utga_badge_png($spec['shortname']);
+    // Власне зображення (final.badge.image, PNG від 300×300) або тимчасове згенероване.
+    if (!empty($b['image'])) {
+        $png = make_request_directory() . '/badge.png';
+        copy($dir . '/' . $b['image'], $png);
+    } else {
+        $png = utga_badge_png($spec['shortname']);
+    }
     badges_process_badge_image($badge, $png);
     $badge->set_status(BADGE_STATUS_ACTIVE);
 }

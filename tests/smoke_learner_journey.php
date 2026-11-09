@@ -18,6 +18,7 @@ global $CFG, $DB;
 require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once($CFG->dirroot . '/mod/feedback/lib.php');
+require_once($CFG->dirroot . '/mod/assign/locallib.php');
 require_once($CFG->libdir . '/badgeslib.php');
 require_once($CFG->dirroot . '/lib/phpunit/classes/util.php');
 
@@ -49,6 +50,7 @@ foreach ($modinfo->get_cms() as $cm) {
 $quizcm = current(array_filter($modinfo->get_cms(), fn($cm) => $cm->modname === 'quiz'));
 $feedbackcm = current(array_filter($modinfo->get_cms(), fn($cm) => $cm->modname === 'feedback'));
 $certcm = current(array_filter($modinfo->get_cms(), fn($cm) => $cm->modname === 'customcert'));
+$assigncm = current(array_filter($modinfo->get_cms(), fn($cm) => $cm->modname === 'assign'));
 
 // 1. Послідовне відкриття модулів.
 $secondmodulefirst = current(array_filter($pages, fn($cm) => $cm->sectionnum == 2));
@@ -99,6 +101,37 @@ $good = $attemptwithanswers(true);
 \core\session\manager::set_user(get_admin());
 $state = $completion->get_data($quizcm, false, $user->id)->completionstate;
 check(in_array($state, [COMPLETION_COMPLETE_PASS, COMPLETION_COMPLETE]), "Тест зараховано після успішної спроби ({$good} б.)");
+
+// 2б. Практичне завдання (якщо є): подання слухача, оцінка експерта нижче й вище прохідного балу.
+if ($assigncm) {
+    get_fast_modinfo($course, $user->id, true);
+    $modinfo = get_fast_modinfo($course, $user->id);
+    check($modinfo->get_cm($assigncm->id)->uservisible, 'Практичне завдання відкрилося після тесту');
+    check(!$modinfo->get_cm($feedbackcm->id)->uservisible, 'Анкета закрита, доки експерт не зарахував завдання');
+
+    [, $cmrec] = get_course_and_cm_from_cmid($assigncm->id, 'assign');
+    $assign = new assign(context_module::instance($assigncm->id), $cmrec, $course);
+    $passgrade = (float)$DB->get_field('grade_items', 'gradepass',
+        ['itemmodule' => 'assign', 'iteminstance' => $assigncm->instance]);
+    $gen->get_plugin_generator('mod_assign')->create_submission(['userid' => $user->id, 'cmid' => $assigncm->id,
+        'onlinetext' => 'Тестова робота: аудит доступності маршруту.', 'status' => ASSIGN_SUBMISSION_STATUS_SUBMITTED]);
+    $grade = function(float $g, int $attempt) use ($assign, $user) {
+        $assign->save_grade($user->id, (object)['grade' => $g, 'attemptnumber' => $attempt, 'addattempt' => 0,
+            'applytoall' => 0, 'workflowstate' => '', 'sendstudentnotifications' => 0]);
+    };
+    $grade($passgrade - 10, 0);
+    get_fast_modinfo($course, $user->id, true);
+    $modinfo = get_fast_modinfo($course, $user->id);
+    check(!$modinfo->get_cm($feedbackcm->id)->uservisible, 'Оцінка нижче прохідної — анкета закрита');
+
+    // Повторне подання після доопрацювання (attemptreopenmethod = untilpass) і зарахування.
+    $gen->get_plugin_generator('mod_assign')->create_submission(['userid' => $user->id, 'cmid' => $assigncm->id,
+        'onlinetext' => 'Доопрацьована робота.', 'status' => ASSIGN_SUBMISSION_STATUS_SUBMITTED]);
+    $grade($passgrade + 10, 1);
+    get_fast_modinfo($course, $user->id, true);
+    $modinfo = get_fast_modinfo($course, $user->id);
+    check($modinfo->get_cm($feedbackcm->id)->uservisible, 'Після зарахування експертом анкета відкрилася');
+}
 
 // 3. Анкета зворотного зв'язку.
 \core\session\manager::set_user($user);
