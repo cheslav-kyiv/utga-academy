@@ -44,6 +44,7 @@ if (!isset($opts['skip-site'])) {
     utga_ensure_profile_field($site['profile_field']);
 }
 $categories = utga_ensure_categories($site['categories']);
+utga_apply_terminology($site['terminology']['replacements'] ?? []);
 
 foreach (glob($repo . '/courses/*/course.json') as $file) {
     $spec = json_decode(file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
@@ -133,6 +134,45 @@ function utga_ensure_profile_field(array $f): void {
     ];
     (new profile_define_menu())->define_save($data);
     mtrace("Поле профілю «{$f['name']}» створено.");
+}
+
+/**
+ * Заміна термінів у вже наявних текстах Moodle — без перезбирання курсів (прогрес слухачів зберігається).
+ * Ідемпотентна: повторний запуск нічого не змінює.
+ */
+function utga_apply_terminology(array $replacements): void {
+    global $DB;
+    if (!$replacements) {
+        return;
+    }
+    $targets = [
+        'course' => ['fullname', 'summary'], 'course_categories' => ['name', 'description'],
+        'course_sections' => ['name', 'summary'], 'page' => ['name', 'intro', 'content'],
+        'quiz' => ['intro'], 'feedback' => ['intro'], 'assign' => ['intro'],
+        'customcert' => ['intro'], 'customcert_elements' => ['data'], 'badge' => ['description'],
+        'user_info_field' => ['name', 'param1'], 'user_info_data' => ['data'],
+    ];
+    $total = 0;
+    foreach ($replacements as $r) {
+        foreach ($targets as $table => $cols) {
+            if (!$DB->get_manager()->table_exists($table)) {
+                continue;
+            }
+            foreach ($cols as $col) {
+                $like = $DB->sql_like($col, ':needle');
+                $n = $DB->count_records_select($table, $like, ['needle' => '%' . $DB->sql_like_escape($r['from']) . '%']);
+                if ($n) {
+                    $DB->execute("UPDATE {{$table}} SET {$col} = REPLACE({$col}, :from, :to) WHERE {$like}",
+                        ['from' => $r['from'], 'to' => $r['to'], 'needle' => '%' . $DB->sql_like_escape($r['from']) . '%']);
+                    $total += $n;
+                }
+            }
+        }
+    }
+    if ($total) {
+        purge_caches();
+        mtrace("Терміни оновлено в наявних текстах: {$total} записів.");
+    }
 }
 
 /** Категорії курсів, повертає [idnumber => id]. */
