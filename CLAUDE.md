@@ -18,3 +18,8 @@
 
 - Джерело змісту — `courses/*/course.json` і `questions.gift`; `--rebuild` видаляє прогрес слухачів (викладачі зберігаються) — не застосовувати до курсів, які вже проходять.
 - На сервері (adm.tools) PHP у консолі — `php8.3`, не `php`.
+
+## Робочий простір експертів
+
+- Зміст курсів готується в шаблоні Claude Docs: https://claude.ai/artifact/AakWdbf9GQV9o47wMTaQMP (рішення ГС «ВАГ», не Google Drive).
+- До курсу переносяться лише розділи зі статусом погодження; порядок — `courses/guide-inclusive-routes-60h/SPEC-v0.3.md`, § 14.
