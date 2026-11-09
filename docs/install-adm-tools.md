@@ -13,7 +13,7 @@
 
 ## 0. Перед початком (у панелі adm.tools)
 
-- [ ] MySQL акаунта — **8.4** (Бази даних → Налаштування)
+- [x] MySQL акаунта — **8.4** (перемкнуто 9.11.2026)
 - [ ] academy.psgua.com: PHP **8.3**, `max_input_vars` **5000**, `max_execution_time` **300**, `display_errors` **вимкнено**, `open_basedir` **/home/uaguides**
 - [ ] SSL Let's Encrypt для academy.psgua.com увімкнено, `https://academy.psgua.com` відкривається
 - [ ] Створено базу даних (Бази даних → Створити), напр. `uaguides_academy`; пароль збережено в надійному місці

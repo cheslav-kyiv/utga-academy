@@ -10,7 +10,7 @@
 | PHP у консолі за замовчуванням | ⚠️ 5.6 — **у консолі завжди використовувати `php8.3`** |
 | PHP 8.3.36: intl, mbstring, mysqli, zip, gd, curl, sodium, soap | ✅ є; `opcache` — вмикається для сайту в панелі |
 | `max_input_vars` | ❌ 1000 → для academy.psgua.com виставити 5000 у «Налаштування PHP (php.ini)» |
-| База даних | Зараз **Percona Server (MySQL) 5.7.44** на `uaguides.mysql.tools` — замало (Moodle 4.5: MySQL 8.0+ / MariaDB 10.6.7+). У панелі є перемикання акаунта на **MySQL 8.4** (Бази даних → Налаштування). ⚠️ Перемикання переносить **усі** бази акаунта — спершу резервні копії та перевірка сумісності наявних сайтів |
+| База даних | ✅ **MySQL 8.4** (акаунт перемкнуто з Percona 5.7.44 9.11.2026). Перед цим: `uaguides_rating.uaguides_activities` перекодовано `utf8_general_ci → utf8mb4_unicode_ci` (конфлікт collation у foreign key), trip/rating переведено з PHP 7.2 на 7.4. Наявні сайти uaguides.com перевірено після перемикання: HTTP 200, без помилок БД |
 | DNS psgua.com | Squarespace; A-запис `academy → 185.104.45.38` додано |
 
 Наш код перевірено на PostgreSQL 16, **MariaDB 10.11** і **MySQL 8.0.46** (`--dbtype=mysqli`): усі перевірки наскрізного тесту пройдено. MySQL 8.4 локально недоступний для тесту; Moodle 4.5 містить підтримку 8.4 (список зарезервованих слів MySQL 8.4 у `lib/ddl/mysql_sql_generator.php`), а Moodle 5.0 вже вимагає 8.4.
