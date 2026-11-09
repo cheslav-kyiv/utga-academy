@@ -47,6 +47,8 @@ bash scripts/check-server.sh
 
 ## 4. Покроковий план
 
+> Готові команди саме для акаунта `uaguides` на adm.tools — у [install-adm-tools.md](install-adm-tools.md).
+
 ```bash
 scripts/install-moodle.sh /var/www/moodle
 ```

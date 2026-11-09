@@ -66,6 +66,7 @@ cd tests/a11y && npm install && A11Y_USER=<username> A11Y_PASS='Learner#2026' CO
 
 - [Архітектура](docs/architecture.md)
 - [Розгортання на psgua.com](docs/deploy-psgua.md)
+- [Покрокове встановлення на academy.psgua.com (adm.tools)](docs/install-adm-tools.md)
 - [Доступність WCAG 2.1 AA](docs/accessibility-wcag21aa.md)
 - [Сертифікати та бейджі](docs/certificates-badges.md)
 - [Як редагувати зміст курсів](docs/content-guide.md)
