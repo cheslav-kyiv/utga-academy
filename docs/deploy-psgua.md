@@ -10,7 +10,7 @@
 | PHP у консолі за замовчуванням | ⚠️ 5.6 — **у консолі завжди використовувати `php8.3`** |
 | PHP 8.3.36: intl, mbstring, mysqli, zip, gd, curl, sodium, soap | ✅ є; `opcache` — вмикається для сайту в панелі |
 | `max_input_vars` | ❌ 1000 → для academy.psgua.com виставити 5000 у «Налаштування PHP (php.ini)» |
-| База даних | MySQL/MariaDB (PostgreSQL немає). **Версія сервера бази — TODO** (потрібно MySQL 8.0+ або MariaDB 10.6.7+) |
+| База даних | ❌ **Percona Server (MySQL) 5.7.44** на `uaguides.mysql.tools`. Moodle 4.5 вимагає MySQL 8.0+ / MariaDB 10.6.7+ (`admin/environment.xml`). **Блокер** — потрібен MySQL 8.0 від хостингу або VPS. Moodle 4.1 (підтримує 5.7) не розглядається: оновлення безпеки завершено в грудні 2025 |
 | DNS psgua.com | Squarespace; A-запис `academy → 185.104.45.38` додано |
 
 Наш код перевірено і на PostgreSQL 16, і на **MariaDB 10.11** (`--dbtype=mariadb`): усі перевірки наскрізного тесту пройдено.
