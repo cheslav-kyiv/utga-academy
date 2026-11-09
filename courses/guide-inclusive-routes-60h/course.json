@@ -1,6 +1,6 @@
 {
   "status": "in-development",
-  "_status_note": "Зміст зі специфікації SPEC-v0.2.md (IN DEVELOPMENT). Курс прихований (visible: false) до проходження Publication Gate (розділ 12 специфікації). Маркери «[Потребує перевірки]» = REQUIRES REVIEW.",
+  "_status_note": "Зміст зі специфікації SPEC-v0.3.md (IN DEVELOPMENT). Курс прихований (visible: false) до проходження Publication Gate (розділ 12 специфікації). Маркери «[Потребує перевірки]» = REQUIRES REVIEW.",
   "visible": false,
   "shortname": "UTGA-G02",
   "fullname": "Розробка та проведення інклюзивних маршрутів / турів",
