@@ -14,7 +14,7 @@
 ## 0. Перед початком (у панелі adm.tools)
 
 - [x] MySQL акаунта — **8.4** (перемкнуто 9.11.2026)
-- [ ] academy.psgua.com: PHP **8.3**, `max_input_vars` **5000**, `max_execution_time` **300**, `display_errors` **вимкнено**, `open_basedir` **/home/uaguides**
+- [ ] academy.psgua.com: PHP **8.3**, у «Модулі PHP» — галочка **libsodium** (без неї вебверсія Moodle падає з `Undefined constant SODIUM_CRYPTO_SECRETBOX_NONCEBYTES`, хоча в консолі `sodium` є), `max_input_vars` **5000**, `max_execution_time` **300**, `display_errors` **вимкнено**, `open_basedir` **/home/uaguides**
 - [ ] SSL Let's Encrypt для academy.psgua.com увімкнено, `https://academy.psgua.com` відкривається
 - [ ] Створено базу даних (Бази даних → Створити), напр. `uaguides_academy`; пароль збережено в надійному місці
 
@@ -36,7 +36,12 @@ mkdir -p /home/uaguides/moodledata-academy && chmod 750 /home/uaguides/moodledat
 
 ## 2. Встановлення Moodle
 
-Пароль бази вводиться приховано (не потрапляє в історію команд):
+Пароль бази вводиться приховано (не потрапляє в історію команд). Вставляти по **одному рядку**; у веб-консолі adm.tools вставка — права кнопка миші або Shift+Insert. Після перепідключення консолі змінні зникають — ввести знову. Перед встановленням перевірити підключення:
+
+```bash
+read -s -p "Пароль бази: " DBPASS; echo; MYSQL_PWD="$DBPASS" mysql -h uaguides.mysql.tools -u uaguides_academy uaguides_academy -e "SELECT VERSION();"
+```
+
 
 ```bash
 read -s -p "Пароль бази: " DBPASS; echo; read -s -p "Пароль адміністратора Moodle: " ADMINPASS; echo
@@ -56,7 +61,7 @@ cd /home/uaguides/utga-academy && php8.3 -d max_input_vars=5000 provisioning/pro
 
 ## 4. Cron (панель adm.tools → «Розклад завдань (cron)»)
 
-Команда, **щохвилини**:
+Тип — **довільна команда** (не «PHP-скрипт сайту»: панель підставить свій шлях і PHP 7.2). Галочка **«Не намагатися знайти потрібний обробник… запускати як є»**. Команда, **щохвилини** (`* * * * *`):
 
 ```
 /usr/bin/php8.3 /home/uaguides/psgua.com/academy/admin/cli/cron.php
@@ -74,3 +79,12 @@ cd /home/uaguides/utga-academy && php8.3 -d max_input_vars=5000 provisioning/pro
 ## Відкат
 
 Якщо встановлення зірвалося до запуску для слухачів: видалити вміст `/home/uaguides/psgua.com/academy` і `/home/uaguides/moodledata-academy`, очистити базу `uaguides_academy` у phpMyAdmin і почати з кроку 1.
+
+## Журнал розгортання
+
+| Дата | Подія |
+|---|---|
+| 9.11.2026 | MySQL акаунта 5.7 → 8.4 (акаунт переведено на сервер hosting-109) |
+| 9.11.2026 | Moodle 4.5.15+ встановлено (`--lang=uk`), `provision.php` зібрав UTGA-G01 і UTGA-H01 |
+| 9.11.2026 | Cron через панель працює; SSL Let's Encrypt для academy.psgua.com, дійсний до 7.02.2027 |
+| — | TODO: `max_input_vars` 5000 для сайту, SMTP, самостійна реєстрація, ручне проходження курсу |
