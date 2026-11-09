@@ -38,6 +38,7 @@ courses/<курс>/questions.gift    запитання підсумкового
 provisioning/provision.php       збирає/оновлює сайт і курси в Moodle
 scripts/install-moodle.sh        завантажує Moodle 4.5 LTS + mod_customcert
 scripts/local-dev.sh             локальне середовище (PostgreSQL + вбудований сервер PHP)
+scripts/check-server.sh          діагностика хостингу перед встановленням (лише читає)
 tests/smoke_learner_journey.php  наскрізний тест шляху слухача (ЛИШЕ локально/staging)
 tests/a11y/                      автоматичний аудит WCAG 2.1 A/AA (Playwright + axe-core)
 docs/                            архітектура, розгортання, доступність, сертифікати й бейджі, редагування змісту

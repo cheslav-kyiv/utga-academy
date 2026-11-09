@@ -20,8 +20,7 @@
   "badges": {
     "issuer_name": "Громадська спілка «Всеукраїнська асоціація гідів» (ГС «ВАГ»)",
     "issuer_url": "https://uaguides.com",
-    "issuer_contact": "TODO@uaguides.com",
-    "_todo": "Вказати контактну адресу видавця бейджів (публікується в кожному бейджі)."
+    "issuer_contact": "info@uaguides.com"
   },
   "certificates": {
     "verify_all_certificates": 1,
