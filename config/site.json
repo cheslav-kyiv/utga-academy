@@ -1,0 +1,32 @@
+{
+  "_comment": "Налаштування сайту Moodle, які застосовує provisioning/provision.php. Значення з позначкою TODO підтверджує Асоціація.",
+  "site": {
+    "fullname": "Академія УАТГ — навчання та підвищення кваліфікації",
+    "shortname": "Академія УАТГ",
+    "lang": "uk",
+    "timezone": "Europe/Kyiv",
+    "country": "UA",
+    "enablecompletion": 1,
+    "enableavailability": 1,
+    "enablebadges": 1
+  },
+  "badges": {
+    "issuer_name": "Ukrainian Tourist Guides Association (UTGA)",
+    "issuer_url": "https://psgua.com",
+    "issuer_contact": "TODO@psgua.com",
+    "_todo": "Підтвердити офіційну українську назву Асоціації та контактну адресу для бейджів."
+  },
+  "certificates": {
+    "verify_all_certificates": 1,
+    "font": "freesans"
+  },
+  "categories": [
+    { "idnumber": "UTGA-GUIDES", "name": "Туристичні гіди", "description": "Програми підвищення кваліфікації для туристичних гідів та екскурсоводів." },
+    { "idnumber": "UTGA-HOSPITALITY", "name": "Гостинність", "description": "Програми для працівників готелів, садиб, закладів харчування та інших сервісів гостинності." }
+  ],
+  "profile_field": {
+    "shortname": "learnergroup",
+    "name": "Категорія слухача",
+    "options": ["Туристичний гід / екскурсовод", "Працівник сфери гостинності", "Представник громади / ДМО", "Інше"]
+  }
+}
