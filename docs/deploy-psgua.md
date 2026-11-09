@@ -2,6 +2,20 @@
 
 Статус: 🔵 **заплановано**. Нижче — що потрібно з'ясувати в хостинг-провайдера і покроковий план.
 
+## 0. Що вже відомо про хостинг (adm.tools, діагностика 9.11.2026)
+
+| Параметр | Стан |
+|---|---|
+| SSH, cron, git, вихідні з'єднання (github.com, download.moodle.org) | ✅ є |
+| PHP у консолі за замовчуванням | ⚠️ 5.6 — **у консолі завжди використовувати `php8.3`** |
+| PHP 8.3.36: intl, mbstring, mysqli, zip, gd, curl, sodium, soap | ✅ є; `opcache` — вмикається для сайту в панелі |
+| `max_input_vars` | ❌ 1000 → для academy.psgua.com виставити 5000 у «Налаштування PHP (php.ini)» |
+| База даних | MySQL/MariaDB (PostgreSQL немає). **Версія сервера бази — TODO** (потрібно MySQL 8.0+ або MariaDB 10.6.7+) |
+| DNS psgua.com | Squarespace; A-запис `academy → 185.104.45.38` додано |
+
+Наш код перевірено і на PostgreSQL 16, і на **MariaDB 10.11** (`--dbtype=mariadb`): усі перевірки наскрізного тесту пройдено.
+
+
 ## 1. Питання до хостингу (потрібні відповіді перед стартом)
 
 | # | Питання | Чому важливо |
@@ -43,10 +57,10 @@ scripts/install-moodle.sh /var/www/moodle
 4. Застосувати налаштування й зібрати курси:
 
 ```bash
-php -d max_input_vars=5000 provisioning/provision.php --moodle=/var/www/moodle
+php8.3 -d max_input_vars=5000 provisioning/provision.php --moodle=/var/www/moodle
 ```
 
-5. Налаштувати cron, SMTP (`Адміністрування > Сервер > Електронна пошта`), `noreplyaddress`.
+5. Налаштувати cron (`php8.3 /шлях/до/moodle/admin/cli/cron.php` щохвилини), SMTP (`Адміністрування > Сервер > Електронна пошта`), `noreplyaddress`.
 6. Перевірити: `Адміністрування > Сповіщення` (без помилок), `Звіти > Перевірки безпеки`.
 7. Прогнати наскрізний тест на **тестовій копії** (staging), не на робочому сайті.
 8. Прогнати `tests/a11y` і ручний чекліст доступності.
