@@ -204,6 +204,7 @@ function utga_build_course(testing_data_generator $gen, array $spec, string $dir
     global $DB, $CFG;
 
     $short = $spec['shortname'];
+    $staff = [];
     if ($existing = $DB->get_record('course', ['shortname' => $short])) {
         if (!$rebuild) {
             mtrace("Курс {$short} вже існує — пропускаю (використайте --rebuild для перезбирання).");
@@ -212,6 +213,7 @@ function utga_build_course(testing_data_generator $gen, array $spec, string $dir
         foreach ($DB->get_records('badge', ['courseid' => $existing->id]) as $b) {
             (new badge($b->id))->delete(false);
         }
+        $staff = utga_course_staff($existing->id);
         delete_course($existing, false);
         mtrace("Курс {$short} видалено для перезбирання.");
     }
@@ -349,9 +351,41 @@ function utga_build_course(testing_data_generator $gen, array $spec, string $dir
         enrol_get_plugin('self')->add_default_instance($course);
     }
 
+    utga_restore_staff($course, $staff);
     utga_badge($course, $spec, $site, $dir);
     rebuild_course_cache($course->id, true);
     mtrace("Курс {$short}: зібрано ({$nummodules} модулів, сертифікат, бейдж).");
+}
+
+/** Викладачі, асистенти й менеджери курсу — щоб --rebuild їх не загубив. Повертає [[userid, roleid], …]. */
+function utga_course_staff(int $courseid): array {
+    global $DB;
+    $sql = "SELECT ra.id, ra.userid, ra.roleid
+              FROM {role_assignments} ra
+              JOIN {role} r ON r.id = ra.roleid
+             WHERE ra.contextid = :ctx AND r.archetype IN ('editingteacher', 'teacher', 'manager')";
+    $rows = $DB->get_records_sql($sql, ['ctx' => context_course::instance($courseid)->id]);
+    return array_values(array_map(fn($r) => [(int)$r->userid, (int)$r->roleid], $rows));
+}
+
+/** Повертає збережених викладачів у перезібраний курс (ручний запис, ті самі ролі). */
+function utga_restore_staff(stdClass $course, array $staff): void {
+    global $DB;
+    if (!$staff) {
+        return;
+    }
+    $manual = enrol_get_plugin('manual');
+    $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'manual']);
+    if (!$instance) {
+        $instance = $DB->get_record('enrol', ['id' => $manual->add_default_instance($course)], '*', MUST_EXIST);
+    }
+    foreach ($staff as [$userid, $roleid]) {
+        if (!$DB->record_exists('user', ['id' => $userid, 'deleted' => 0])) {
+            continue;
+        }
+        $manual->enrol_user($instance, $userid, $roleid);
+    }
+    mtrace('  відновлено викладачів: ' . count(array_unique(array_column($staff, 0))) . '.');
 }
 
 /** Імпорт запитань GIFT у банк запитань курсу та додавання їх у тест. */
