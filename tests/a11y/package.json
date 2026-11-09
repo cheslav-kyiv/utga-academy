@@ -2,7 +2,7 @@
   "name": "utga-academy-a11y",
   "private": true,
   "type": "module",
-  "description": "Автоматична перевірка WCAG 2.1 AA (axe-core) ключових сторінок Академії УАТГ",
+  "description": "Автоматична перевірка WCAG 2.1 AA (axe-core) ключових сторінок Академії ГС «ВАГ»",
   "scripts": { "check": "node check.mjs" },
   "dependencies": { "@axe-core/playwright": "4.10.2" },
   "peerDependencies": { "playwright": ">=1.40" }

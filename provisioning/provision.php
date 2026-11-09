@@ -1,5 +1,5 @@
 <?php
-// Академія УАТГ — скрипт налаштування Moodle та збирання курсів з описів у courses/*/course.json.
+// Академія ГС «ВАГ» — скрипт налаштування Moodle та збирання курсів з описів у courses/*/course.json.
 //
 // Запуск (з будь-якої теки):
 //   php -d max_input_vars=5000 provisioning/provision.php --moodle=/шлях/до/moodle [--rebuild] [--only=UTGA-G01]
@@ -396,7 +396,10 @@ function utga_certificate_template(stdClass $cert, array $spec, array $site): vo
     };
 
     $add('border', 'Рамка', '2', 0, 12, 0, 0, 0, '#1E3A8A');
-    $add('text', 'Організація', $site['badges']['issuer_name'] . ' · ' . $site['site']['shortname'], 18, 12, 148, 250);
+    $org = $site['organisation'];
+    $add('text', 'Організація', $org['name_full'] . ' (' . $org['name_short'] . ')', 16, 12, 148, 250);
+    $add('text', 'ЄДРПОУ', 'ЄДРПОУ ' . $org['edrpou'] . ' · ' . preg_replace('#^https?://#', '', $org['url']), 23, 9, 148, 250,
+        1, '#4B5563');
     $add('text', 'Заголовок', $c['title'], 40, 34, 148, 250, 1, '#1E3A8A');
     $add('text', 'Підзаголовок', $c['subtitle'], 58, 14, 148, 250);
     $add('text', 'Підтверджує', 'Цим підтверджується, що', 76, 12, 148, 250);

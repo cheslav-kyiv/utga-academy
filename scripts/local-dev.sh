@@ -19,7 +19,7 @@ if [ ! -f "$MOODLE/config.php" ]; then
     sudo -u postgres psql -c "CREATE DATABASE moodle OWNER moodle ENCODING 'UTF8' TEMPLATE template0;"
   $PHP "$MOODLE/admin/cli/install.php" --non-interactive --agree-license --lang=en \
     --wwwroot=http://localhost:8080 --dataroot="$DATA" --dbtype=pgsql --dbhost=localhost \
-    --dbname=moodle --dbuser=moodle --dbpass=moodle --fullname="Академія УАТГ" --shortname="Академія УАТГ" \
+    --dbname=moodle --dbuser=moodle --dbpass=moodle --fullname="Академія ГС «ВАГ»" --shortname="Академія ГС «ВАГ»" \
     --adminuser=admin --adminpass='Admin#2026' --adminemail=admin@example.com
 fi
 
