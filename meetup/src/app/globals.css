@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+/* Дизайн-токени. Контраст перевірено для WCAG 2.1 AA (див. README). */
+@theme {
+  --color-ink-950: #0b111c;
+  --color-ink-900: #101827;
+  --color-ink-800: #18233a;
+  --color-ink-700: #24324d;
+  --color-ink-300: #b9c2d3;
+  --color-ink-200: #d6dce8;
+
+  --color-paper-50: #fbfaf7;
+  --color-paper-100: #f5f2ea;
+  --color-paper-200: #e9e4d6;
+
+  --color-text: #161d2b;
+  --color-muted: #4a5263;
+
+  --color-gold-300: #f0cf7a;
+  --color-gold-400: #e4b54b;
+  --color-gold-500: #d29f2c;
+  --color-ochre-700: #7b5a10;
+  --color-ochre-800: #5f450b;
+
+  --color-ua-blue: #0057b7;
+  --color-ua-yellow: #ffd500;
+
+  --color-danger: #a4161a;
+  --color-success: #1d6b3a;
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --animate-reveal: reveal 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  @keyframes reveal {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem; /* висота sticky-хедера для якорів */
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-paper-50 text-text font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3 {
+    @apply font-display;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+
+  /* Фокус з клавіатури: видимий на світлому та темному тлі (подвійне кільце) */
+  :focus-visible {
+    outline: 3px solid var(--color-ua-blue);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px #fff;
+    border-radius: 6px;
+  }
+  .on-dark :focus-visible {
+    outline-color: var(--color-gold-300);
+    box-shadow: 0 0 0 6px var(--color-ink-950);
+  }
+}
+
+@utility container-page {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+}
+@utility eyebrow {
+  @apply inline-flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-ochre-700;
+  .on-dark & { color: var(--color-gold-300); }
+}
+@utility btn {
+  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 py-3 text-base font-semibold select-none;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+@utility btn-primary {
+  @apply btn bg-gold-400 text-ink-950 shadow-[0_8px_24px_-8px_rgba(228,181,75,0.6)] hover:bg-gold-300 active:translate-y-px;
+}
+@utility btn-secondary-dark {
+  @apply btn border border-ink-300/50 text-white hover:border-white hover:bg-white/10;
+}
+@utility btn-secondary-light {
+  @apply btn border border-ink-700/30 text-text hover:bg-paper-200;
+}
+@utility card {
+  @apply rounded-2xl border border-paper-200 bg-white p-6 shadow-[0_1px_2px_rgba(16,24,39,0.04)];
+}
+@utility tag {
+  @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+}
+
+/* Поява блоків при скролі: лише якщо користувач не обмежив анімації */
+.reveal { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .js .reveal:not(.is-visible) { opacity: 0; transform: translateY(18px); }
+  .js .reveal.is-visible { animation: var(--animate-reveal); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Підтримка режиму примусових кольорів (Windows High Contrast) */
+@media (forced-colors: active) {
+  .btn, .card, .tag { border: 1px solid CanvasText; }
+}
