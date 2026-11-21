@@ -43,6 +43,7 @@ scripts/check-server.sh          діагностика хостингу пер�
 tests/smoke_learner_journey.php  наскрізний тест шляху слухача (ЛИШЕ локально/staging)
 tests/a11y/                      автоматичний аудит WCAG 2.1 A/AA (Playwright + axe-core)
 docs/                            архітектура, розгортання, доступність, сертифікати й бейджі, редагування змісту
+meetup/                          лендінг і реєстрація на онлайн-мітапи ГС «ВАГ» (Next.js) — див. meetup/README.md
 ```
 
 ## Швидкий старт (локально)
